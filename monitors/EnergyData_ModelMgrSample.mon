@@ -1,0 +1,174 @@
+/**
+ * $Copyright (c) 2015-2017 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.$
+ * Use, reproduction, transfer, publication or disclosure is prohibited except as specifically provided for in your License Agreement with Software AG
+ */
+
+package com.apama.pa.pmml.sample;
+
+
+using com.apama.pa.pmml.ServiceName;
+
+using com.apama.pa.pmml.ServiceParams;
+using com.apama.pa.pmml.ServiceParamsHelper;
+
+using com.apama.pa.pmml.ServiceError;
+using com.apama.pa.pmml.ServiceHandler;
+using com.apama.pa.pmml.ServiceHandlerFactory;
+
+using com.apama.pa.pmml.Input;
+using com.apama.pa.pmml.Output;
+
+using com.apama.pa.pmml.ModelManager;
+//using com.apama.dataview.DataViewAddDefinition;
+//using com.apama.dataview.DataViewDefinition;
+//using com.apama.dataview.DataViewAddItem;
+//using com.apama.dataview.DataViewItem;
+//using com.apama.dataview.DataViewUpdateItem;
+//using com.apama.dataview.DataViewException;
+//using com.apama.dataview.DataViewItemException;
+
+using com.apama.file.sample.WriteTrigger;
+
+using com.apama.correlator.timeformat.TimeFormat;
+
+event SampleInput {
+	string instanceName;
+	dictionary<string, string> inputFields;
+}
+
+
+
+monitor PredictiveAnalytics_ModelManager_Sample
+{
+
+	//constant string INSTANCE_NAME := "Instance_1";
+	constant string INSTANCE_NAME := "Ulf";
+	//constant string MODEL_NAME := "Linear_Regression_Model";
+	constant string MODEL_NAME := "Logistic_Regression_Model";
+	
+	integer i := 0;
+	
+	ServiceHandler serviceHandler;
+
+	action onload {
+
+		log "Running Predictive Analytics Model Manager Sample" at INFO;
+
+		/// Create an instance to pass configuration parameters
+		ServiceParams params := ServiceParamsHelper.create();
+
+		// Set the directory from which model can be loaded during initialisation
+		params.setPMMLFileDirectory("./model");
+
+		// Load the PMML model from file
+		params.setPMMLFileName("log_reg_train.pmml");
+
+		// Clean asset store on shutdown
+		params.cleanAssetStoreOnShutdown(true);
+
+		// Initialise a predictive analytics instance
+		ServiceHandlerFactory.create(ServiceName.Zementis              //Predictive Analytics Service
+										, INSTANCE_NAME                //Unique Instance Name
+										, params                       //Configuration options for setting up the instance
+										, onServiceInitialised         //Service Initialisation success callback
+										, onServiceError               //Service Initialisation error callback
+		);
+		
+	}
+
+	action onServiceInitialised(ServiceHandler servicehandler) {
+
+		log "Model Manager Sample successfully initialised" at INFO;
+
+		serviceHandler := servicehandler;
+
+		// Forward requests for scoring to predictive analytics instance
+		SampleInput sample;
+		on all SampleInput(instanceName=INSTANCE_NAME) as sample {
+
+			Input input        := new Input;
+			input.instanceName := INSTANCE_NAME;
+			input.modelName    := MODEL_NAME;
+			input.requestId    := integer.getUnique().toString();
+			input.inputFields  := sample.inputFields;
+			
+
+			route input;
+			
+		}
+		// Consume responses from Predictive Analytics instance
+		Output output;
+		
+		on all Output(instanceName=INSTANCE_NAME) as output {
+			i := i+1;
+			//log output.outputFields.toString() at INFO;
+			
+			log i.toString()+" An: "+output.outputFields.getOrDefault("probability(1)")+
+							 " Aus: "+output.outputFields.getOrDefault("probability(0)") at INFO;
+			log output.outputFields.toString() at INFO;
+			//log output.outputFields.getOrDefault("probability(0)") at INFO;
+			
+			//Write Data into file
+			WriteTrigger wt := new WriteTrigger;
+			wt.filename := "sample.csv";
+			wt.data := [TimeFormat.format(currentTime,"yyyy.MM.dd HH:mm:ss"),
+			            output.outputFields.getOrDefault("probability(0)").toString(),
+			            output.outputFields.getOrDefault("probability(1)").toString()];
+			log "Line Wrting: " + wt.toString() at INFO;
+			route wt;
+
+		}
+	}
+
+	action addModel {
+		log "Model  successfully loades" at INFO;
+
+		// Get an instance of model manager
+		ModelManager modelManager := serviceHandler.getModelManager();
+
+		// Add a PMML model, any errors while loading a model will be reported
+		// using the default error callback registered during service initialisation
+		//modelManager.addModel("./model/EnergyDataModel.pmml");
+		modelManager.addModel("./model/log_reg_train.pmml");
+
+		// Alternatively register a new error handler
+		//modelManager.addModelCb("./model/EnergyDataModel.pmml", modelConfigError);
+	}
+/*
+	action updateModel {
+
+		// Get an instance of model manager
+		ModelManager modelManager := serviceHandler.getModelManager();
+
+		// Update an exiting PMML model, any errors while updating the model will be reported
+		// using the default error callback registered during service initialisation
+		modelManager.updateModel(MODEL_NAME, "./model/EnergyDataModel_Updated.pmml");
+
+		// Alternatively register a new error handler
+		//modelManager.updateModelCb(MODEL_NAME, "./model/EnergyDataModel_Updated.pmml", modelConfigError);
+	}
+
+	action removeModel {
+
+		// Get an instance of model manager
+		ModelManager modelManager := serviceHandler.getModelManager();
+
+		// Remove an exiting PMML model, any errors while removing the model will be reported
+		// using the default error callback registered during service initialisation
+		modelManager.removeModel(MODEL_NAME);
+
+		// Alternatively register a new error handler
+		//modelManager.removeModelCb(MODEL_NAME, modelConfigError);
+	}
+	*/
+
+	// Optional error handler for reeporting errors encounted while setting up PMML models
+	action modelConfigError(ServiceError serviceError) {
+		log "Model Manager Sample, error with Add/Update/Remove model" + serviceError.getErrorMessage() at ERROR;
+	}
+
+	// Error handler for reeporting errors encounted with the instance
+	action onServiceError(ServiceError serviceError) {
+		log "Model Manager Sample " + serviceError.getErrorMessage() at ERROR;
+	}
+}

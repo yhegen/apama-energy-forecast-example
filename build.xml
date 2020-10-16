@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+$Copyright (c) 2015-2016 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.$
+Use, reproduction, transfer, publication or disclosure is prohibited except as specifically provided for in your License Agreement with Software AG
+
+-->
+<project name="Predictive Analytics Model Manager Sample" default="usage" basedir=".">
+
+	<description>
+		Predictive Analytics Model Manager Sample
+	</description>
+
+	<property environment="env"/>
+
+	<import file="${env.APAMA_HOME}/adapters/ant_macros/predictive-analytics-support-macros.xml"/>
+
+	<property name="SAMPLE_HOME" location="."/>
+
+	<!--
+	Default target prints out the usage of this ant file
+	-->
+	<target name="usage">
+		<echo message="Predictive Analytics Model Manager Sample"/>
+		<echo message=""/>
+		<echo message="Usage: ant target"/>
+		<echo message=""/>
+		<echo message="where target can be :"/>
+		<echo message=""/>
+		<echo message="    start  - Start the sample"/>
+		<echo message="    stop   - Stop the sample"/>
+		<echo message="    clean  - clean logs and store"/>
+		<echo message=""/>
+	</target>
+
+	<!--
+	Target to start the Event Correlator
+	-->
+	<target name="start-correlator" depends="predictive-analytics-plugin-props">
+		<echo message="Using host ${correlator.host}, port ${correlator.port}."/>
+		<start-correlator
+			port="${correlator.port}"
+			java="true"
+			classpath="${predictive.analytics.plugin.classpath}"
+			waitperiod="30"/>
+	</target>
+
+	<target name="start-sample" depends="start-correlator, predictive-analytics-plugin-bundle">
+		<engine-inject host="${host}" port="${port}">
+			<filelist dir="${SAMPLE_HOME}/monitors">
+				<file name="EnergyData_ModelMgrSample.mon"/>
+			</filelist>
+		</engine-inject>
+		<engine-send host="${host}" port="${port}">
+			<filelist dir="${SAMPLE_HOME}/events">
+				<file name="SMDAta.evt"/>
+			</filelist>
+		</engine-send>
+	</target>
+
+	<target name="start" depends="start-correlator, start-sample"/>
+
+	<!--
+	Target to clean logs and class files
+	-->
+	<target name="clean">
+		<delete dir="${SAMPLE_HOME}/logs"/>
+		<delete dir="${SAMPLE_HOME}/adapa-store"/>
+	</target>
+
+	<target name="stop">
+		<kill-correlator host="${correlator.host}" port="${correlator.port}" failonerror="false"/>
+	</target>
+
+</project>

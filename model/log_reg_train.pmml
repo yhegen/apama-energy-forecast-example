@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
+	<Header description="LogisticRegressionModel">
+		<Application name="JPMML-SkLearn" version="1.4.10"/>
+		<Timestamp>2018-03-28T08:00:25Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension>PMMLPipeline(steps=[('pretrained-estimator', LogisticRegression(C=10, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=1000, multi_class='ovr', n_jobs=1,
+          penalty='l2', random_state=0, solver='liblinear', tol=0.0001,
+          verbose=10, warm_start=False))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="label" optype="categorical" dataType="integer">
+			<Value value="0"/>
+			<Value value="1"/>
+		</DataField>
+		<DataField name="L3__minimum" optype="continuous" dataType="double"/>
+		<DataField name="t0" optype="continuous" dataType="double"/>
+		<DataField name="t30" optype="continuous" dataType="double"/>
+	</DataDictionary>
+	<RegressionModel modelName="Logistic_Regression_Model" functionName="classification" normalizationMethod="logit">
+		<MiningSchema>
+			<MiningField name="label" usageType="target"/>
+			<MiningField name="L3__minimum"/>
+			<MiningField name="t0"/>
+			<MiningField name="t30"/>
+		</MiningSchema>
+		<Output>
+			<OutputField name="probability(0)" optype="continuous" dataType="double" feature="probability" value="0"/>
+			<OutputField name="probability(1)" optype="continuous" dataType="double" feature="probability" value="1"/>
+		</Output>
+		<RegressionTable intercept="-1.9109267385816942" targetCategory="1">
+			<NumericPredictor name="L3__minimum" coefficient="-9.67742582457761E-4"/>
+			<NumericPredictor name="t0" coefficient="0.001138456760409498"/>
+			<NumericPredictor name="t30" coefficient="0.0011294415889368285"/>
+		</RegressionTable>
+		<RegressionTable intercept="0.0" targetCategory="0"/>
+	</RegressionModel>
+</PMML>

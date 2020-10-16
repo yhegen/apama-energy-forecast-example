@@ -1,0 +1,98 @@
+﻿package com.apama.dataview.sample;
+
+using com.apama.pa.pmml.sample.SampleInput;
+
+using com.industry.analytics.Data;
+using com.industry.analytics.DataConstants;
+using com.industry.analytics.Analytic;
+
+/** This monitor is responsible for ...  */
+monitor EnergyData_DataView {
+	
+	sequence<string>           emptySequence;
+	dictionary<string, string> emptyDictionary;
+	
+	constant float WAIT := 5.0;
+	constant float CYCLE := 0.5;
+	
+	sequence<SampleInput> seq_Input; //SampleInput collection
+	
+	action onload() {
+		log "Loaded monitor EnergyData_DataView" at INFO;
+		
+		/////////////////////////////////////////////////////////////////////////
+		// Create a set of DataViewer Analytics for the various data values 
+		// so that we can visualize these values in the Dashboard 
+		/////////////////////////////////////////////////////////////////////////
+		send Analytic( "DataViewer", ["L3__minimum"], emptySequence, emptyDictionary ) to "";
+		send Analytic( "DataViewer", ["t0"], emptySequence, emptyDictionary ) to "";
+		send Analytic( "DataViewer", ["t30"], emptySequence, emptyDictionary ) to "";
+		
+//		-------------------------------------------------------------------------------------
+		
+		waitForSampleInput();
+	}
+	
+	action waitForSampleInput() {
+		
+		log "*** Ready to wait for events..." at INFO;
+		SampleInput input := new SampleInput;
+		
+//		Sending events for visualization after collecting all SampleInput events.
+//		After WAIT seconds without receiving SampleInput, start sending events to DataViewe.
+		listener collectingInput := on SampleInput() -> all SampleInput() : input or wait (WAIT){
+			
+			if(input.inputFields = emptyDictionary ) {
+				
+				log "Finish collecting events." at INFO;
+//				Input event is empty? --> time is up
+				sendSampleInputs();
+				collectingInput.quit(); //quit collecting listener
+				
+			}else { //events still exist
+				seq_Input.append(input); //collect
+			}
+		}
+	}
+	
+	action sendSampleInputs() {
+
+		log "*** Start sending events." at INFO;
+//		Update DataView
+//		Send collected events periodically every CYCLE seconds.
+		listener cycleTimer := on all wait(CYCLE) {
+			
+			log "Sending event to DataView..." + seq_Input.size().toString() + " events left." at INFO;
+			SampleInput input := seq_Input[0]; //select "oldest" events first
+			
+			sendData("L3__minimum",input.inputFields["L3__minimum"].toDecimal());
+			sendData("t0",input.inputFields["t0"].toDecimal());
+			sendData("t30",input.inputFields["t30"].toDecimal());
+			
+			seq_Input.remove(0); //delete oldest event
+			
+			if(seq_Input.size() = 0) { //send all events?
+				log "No events are left." at INFO;
+				log "Finish sending events..." at INFO;
+				
+				waitForSampleInput(); //Ready to wait for new events!
+				cycleTimer.quit(); //quit listener
+			}
+		}	
+		
+	}
+	
+	action sendData(string streamName, decimal dValue) {
+		
+		send Data(streamName, //stream name
+		          DataConstants.RAW, //event type
+		          "SmartMeter_id", //source id
+		          currentTime.toDecimal(), //timestamp
+		          dValue, //measued value
+		          "String value", //some description
+		          0.0, //x value
+		          0.0, //y value
+		          0.0, //z value
+		          emptyDictionary) to streamName;
+	}
+}

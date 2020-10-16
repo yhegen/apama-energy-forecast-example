@@ -1,0 +1,37 @@
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"238.61","t30":"238.62"})
+BATCH 1000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.3","t30":"238.7"})
+BATCH 4000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.33","t30":"238.83"})
+BATCH 8000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.03","t30":"238.43"})
+BATCH 12000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.31","t30":"238.72"})
+BATCH 16000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.64","t30":"238.8"})
+BATCH 20000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.36","t30":"238.77"})
+BATCH 24000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"238.94","t30":"238.77"})
+BATCH 28000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.04","t30":"238.63"})
+BATCH 32000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"239.01","t30":"238.63"})
+BATCH 36000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"237.85","t30":"238.82"})
+BATCH 40000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.44","t0":"237.44","t30":"238.69"})
+BATCH 44000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.62","t0":"238.63","t30":"239.03"})
+BATCH 48000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.62","t0":"240.02","t30":"238.85"})
+BATCH 52000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.62","t0":"238.17","t30":"238.76"})
+BATCH 56000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.62","t0":"237.62","t30":"238.98"})
+BATCH 60000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.88","t0":"238.02","t30":"238.35"})
+BATCH 64000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.85","t0":"237.88","t30":"237.85"})
+BATCH 68000
+com.apama.pa.pmml.sample.SampleInput("Ulf",{"L3__minimum":"237.85","t0":"237.92","t30":"237.85"})

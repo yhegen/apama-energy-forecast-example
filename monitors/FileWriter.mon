@@ -1,0 +1,86 @@
+package com.apama.file.sample;
+
+using com.apama.file.OpenFileForWriting;
+using com.apama.file.LineWritten;
+using com.apama.file.FileHandle;
+using com.apama.file.FileLine;
+using com.apama.file.CloseFile;
+using com.apama.file.FileClosed;
+
+using com.apama.correlator.timeformat.TimeFormat;
+/** This monitor is responsible for ...  */
+
+event WriteTrigger{
+	string filename;
+	sequence<string> data;
+}
+
+monitor FileWriter {
+	action onload() {
+		log "Loaded monitor FileWriter" at INFO;
+		
+		on all WriteTrigger() as wt{
+			log "Start writing into file '" + wt.filename + "'..." at INFO;
+			startWriteOperations(wt);
+			
+		}
+	}
+	
+	action startWriteOperations(WriteTrigger wt) {
+		
+		OpenFileForWriting ofw := new OpenFileForWriting;
+		ofw.transportName := "JMultiFileTransport";
+		ofw.requestId := integer.getUnique();
+		ofw.codec := "JCSVCodec";
+		ofw.filename :=  ".\\csv\\" + wt.filename;
+		ofw.payload["separator"] := ",";
+		ofw.appendData := true;
+		
+		send ofw to "FILE";
+		
+		on FileHandle() as fhandle{
+			WriteFile(fhandle,wt);
+		}
+	}
+	
+	action WriteFile(FileHandle fhandle, WriteTrigger wt) {
+		
+		FileLine line := new FileLine;
+		line.transportName := "JMultiFileTransport";
+		line.requestId := integer.getUnique();
+		line.sessionId := fhandle.sessionId;
+		line.data := wt.data;
+		
+		send line to "FILE";
+		
+		on LineWritten(sessionId = line.sessionId) {
+			log "Wrote line successfully." at INFO;
+			CloseTheFile(line, wt);
+		}
+	}
+	
+	action CloseTheFile(FileLine fdata, WriteTrigger wt) {
+//		Closing File 	
+		CloseFile clf := new CloseFile;
+		clf.transportName := "JMultiFileTransport";
+		clf.requestId := integer.getUnique();
+		clf.sessionId := fdata.sessionId;
+		send clf to "FILE";
+		
+		on FileClosed(requestId = clf.requestId) as fc{
+			print "File " + wt.filename + " has been closed.";
+		}
+	}
+	
+	action sendWriteTrigger(string file) {
+		WriteTrigger wt := new WriteTrigger;
+		
+		wt.filename := file;
+		
+		wt.data.append(TimeFormat.format(currentTime,"yyyy.MM.dd HH:mm:ss"));
+		wt.data.append("some data");
+		
+		print wt.toString();
+		route wt;
+	}
+}
